@@ -4,6 +4,8 @@ const galleryHeader = document.querySelector('.gallery-header');
 const searchBtn = document.getElementById('search-btn');
 const sliderBtn = document.getElementById('create-slider');
 const sliderContainer = document.getElementById('sliders');
+const selectedImage = document.getElementById('imageSelected');//image selected
+
 // selected image 
 let sliders = [];
 
@@ -17,6 +19,7 @@ const KEY = '15674931-a9d714b6e9d654524df198e00&q';
 const showImages = (images) => {
   imagesArea.style.display = 'block';
   gallery.innerHTML = '';
+  
   // show gallery title
   galleryHeader.style.display = 'flex';
   images.forEach(image => {
@@ -24,28 +27,44 @@ const showImages = (images) => {
     div.className = 'col-lg-3 col-md-4 col-xs-6 img-item mb-2';
     div.innerHTML = ` <img class="img-fluid img-thumbnail" onclick=selectItem(event,"${image.webformatURL}") src="${image.webformatURL}" alt="${image.tags}">`;
     gallery.appendChild(div)
-  })
-
+    })
+  toggleSpinner();
 }
 
 const getImages = (query) => {
+  toggleSpinner();
   fetch(`https://pixabay.com/api/?key=${KEY}=${query}&image_type=photo&pretty=true`)
     .then(response => response.json())
     .then(data => showImages(data.hits))
-    .catch(err => console.log(err))
+    .catch(err => console.log(err)) 
 }
+
+const dataValidation = (time) => {
+  if (time > 1000){
+    return time;
+  }
+  else{
+    alert('Interval set to 2s')
+    return 2000;
+  }
+}
+
+
 
 let slideIndex = 0;
 const selectItem = (event, img) => {
   let element = event.target;
-  element.classList.add('added');
+  element.classList.toggle('added');
  
   let item = sliders.indexOf(img);
   if (item === -1) {
     sliders.push(img);
   } else {
-    alert('Hey, Already added !')
+    // alert('Hey, Already added !')
+    sliders.splice(item,1);
   }
+  selectedImage.innerText= sliders.length;
+  // console.log(sliders)
 }
 var timer
 const createSlider = () => {
@@ -54,7 +73,7 @@ const createSlider = () => {
     alert('Select at least 2 image.')
     return;
   }
-  // crate slider previous next area
+  // create slider previous next area
   sliderContainer.innerHTML = '';
   const prevNext = document.createElement('div');
   prevNext.className = "prev-next d-flex w-100 justify-content-between align-items-center";
@@ -62,12 +81,12 @@ const createSlider = () => {
   <span class="prev" onclick="changeItem(-1)"><i class="fas fa-chevron-left"></i></span>
   <span class="next" onclick="changeItem(1)"><i class="fas fa-chevron-right"></i></span>
   `;
-
   sliderContainer.appendChild(prevNext)
   document.querySelector('.main').style.display = 'block';
-  // hide image aria
+  // hide image area
   imagesArea.style.display = 'none';
-  const duration = document.getElementById('duration').value || 1000;
+  const duration = dataValidation(document.getElementById('duration').value);
+
   sliders.forEach(slide => {
     let item = document.createElement('div')
     item.className = "slider-item";
@@ -108,7 +127,9 @@ const changeSlide = (index) => {
 
   items[index].style.display = "block"
 }
-const searchImage = () =>{
+
+const searchImage = () => {
+  selectedImage.innerText= '0';
   document.querySelector('.main').style.display = 'none';
   clearInterval(timer);
   const search = document.getElementById('search');
@@ -123,3 +144,8 @@ searchBtn.addEventListener('click', function () {
 sliderBtn.addEventListener('click', function () {
   createSlider()
 })
+//extra section Spinner
+const toggleSpinner = () =>{
+  const spinner = document.getElementById('loading-spinner');
+  spinner.classList.toggle('d-none');
+}
